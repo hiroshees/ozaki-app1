@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { TimeGridView } from '@/components/calendar/timeGridView';
+import type { CalendarEvent, EventColor } from '@/lib/events/types';
 
 const render = (
   view: 'week' | 'day',
@@ -65,5 +66,116 @@ describe('TimeGridView', () => {
       />,
     );
     expect(html).toContain('data-slot="2026-10-14"');
+  });
+});
+
+const jst = (s: string) => new Date(`${s}+09:00`);
+let seq = 0;
+const make = (
+  title: string,
+  start: string,
+  end: string,
+  { allDay = false, color = 'blue' as EventColor } = {},
+): CalendarEvent => ({
+  id: `00000000-0000-4000-8000-${String(++seq).padStart(12, '0')}`,
+  title,
+  startsAt: jst(start),
+  endsAt: jst(end),
+  allDay,
+  color,
+  memo: '',
+  createdAt: jst('2026-10-01T00:00'),
+  updatedAt: jst('2026-10-01T00:00'),
+});
+const allDayEvent = (
+  title: string,
+  first: string,
+  lastExclusive: string,
+  color?: EventColor,
+) =>
+  make(title, `${first}T00:00`, `${lastExclusive}T00:00`, {
+    allDay: true,
+    color,
+  });
+
+const renderWith = (
+  view: 'week' | 'day',
+  dateKey: string,
+  events: CalendarEvent[],
+) =>
+  renderToStaticMarkup(
+    <TimeGridView
+      view={view}
+      dateKey={dateKey}
+      todayKey="2026-10-17"
+      events={events}
+    />,
+  );
+
+describe('TimeGridView の終日予定の欄', () => {
+  it('終日予定が無ければ欄は出ない', () => {
+    expect(render('week', '2026-10-14')).not.toContain('終日');
+  });
+
+  it('終日予定は時間グリッドの上（列見出しの下）の欄に出る', () => {
+    const html = renderWith('week', '2026-10-14', [
+      allDayEvent('休み', '2026-10-14', '2026-10-15'),
+    ]);
+    expect(html).toContain('aria-label="終日の予定"');
+    expect(html.indexOf('>休み<')).toBeGreaterThan(-1);
+    expect(html.indexOf('終日の予定')).toBeLessThan(html.indexOf('data-day="'));
+    // 時間グリッドの列の中には出ない
+    const grid = html.slice(html.indexOf('data-day="'));
+    expect(grid).not.toContain('>休み<');
+  });
+
+  it('複数日の終日予定は、複数列にまたがる1本の帯', () => {
+    const html = renderWith('week', '2026-10-14', [
+      allDayEvent('合宿', '2026-10-12', '2026-10-15', 'red'),
+    ]);
+    expect(count(html, '>合宿<')).toBe(1);
+    expect(html).toContain('grid-column:2 / 5');
+    expect(html).toContain('bg-red-600');
+  });
+
+  it('範囲の前後へ続く終日予定は、端を丸めない', () => {
+    const html = renderWith('week', '2026-10-14', [
+      allDayEvent('長期', '2026-10-05', '2026-10-30'),
+    ]);
+    expect(html).toContain('rounded-l-none');
+    expect(html).toContain('rounded-r-none');
+    expect(html).toContain('grid-column:1 / 8');
+  });
+
+  it('日をまたぐ時間指定の予定は欄に出ない', () => {
+    const html = renderWith('week', '2026-10-14', [
+      make('夜', '2026-10-13T23:00', '2026-10-14T01:00'),
+    ]);
+    expect(html).not.toContain('終日');
+    expect(html).not.toContain('>夜<');
+  });
+
+  it('あふれると最終行が「他 N 件」になる', () => {
+    const events = [1, 2, 3, 4, 5].map((i) =>
+      allDayEvent(`予定${i}`, '2026-10-13', '2026-10-14'),
+    );
+    const html = renderWith('week', '2026-10-14', events);
+    expect(html).toContain('他 3 件');
+    expect(count(html, '>予定')).toBe(2);
+  });
+
+  it('日表示でも、複数日の途中の日にかかる終日予定が出る', () => {
+    const html = renderWith('day', '2026-10-14', [
+      allDayEvent('出張', '2026-10-12', '2026-10-17'),
+    ]);
+    expect(count(html, '>出張<')).toBe(1);
+    expect(html).toContain('grid-column:1 / 2');
+  });
+
+  it('日表示では、その日にかからない終日予定は出ない', () => {
+    const html = renderWith('day', '2026-10-14', [
+      allDayEvent('別日', '2026-10-20', '2026-10-21'),
+    ]);
+    expect(html).not.toContain('別日');
   });
 });

@@ -15,11 +15,15 @@ import {
 import { buildViewHref } from '@/lib/calendar/url';
 import { CurrentTimeLine } from '@/components/calendar/currentTimeLine';
 import { TimeGridScroller } from '@/components/calendar/timeGridScroller';
+import { AllDayArea } from '@/components/calendar/allDayArea';
+import type { CalendarEvent } from '@/lib/events/types';
 
 type TimeGridViewProps = {
   view: 'week' | 'day';
   dateKey: string;
   todayKey: string;
+  // 終日予定の欄に表示する予定（時間指定の予定は含めなくてよい）
+  events?: CalendarEvent[];
   // 各日の列に重ねる内容（予定など）。列は position: relative
   renderDay?: (dayKey: string) => React.ReactNode;
 };
@@ -43,6 +47,7 @@ export function TimeGridView({
   view,
   dateKey,
   todayKey,
+  events = [],
   renderDay,
 }: TimeGridViewProps) {
   const days = dayColumns(view, dateKey, todayKey);
@@ -82,6 +87,12 @@ export function TimeGridView({
           ))}
         </div>
       </div>
+
+      <AllDayArea
+        events={events}
+        dayKeys={days.map((d) => d.key)}
+        gutterClassName={GUTTER}
+      />
 
       <TimeGridScroller containsToday={todayColumn !== -1}>
         <div className="flex" style={{ height: GRID_HEIGHT_PX }}>
