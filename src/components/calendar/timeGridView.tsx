@@ -16,6 +16,8 @@ import { buildViewHref } from '@/lib/calendar/url';
 import { CurrentTimeLine } from '@/components/calendar/currentTimeLine';
 import { TimeGridScroller } from '@/components/calendar/timeGridScroller';
 import { AllDayArea } from '@/components/calendar/allDayArea';
+import { TimedEvents } from '@/components/calendar/timedEvents';
+import { layoutDayColumns } from '@/lib/calendar/day-column';
 import type { CalendarEvent } from '@/lib/events/types';
 
 type TimeGridViewProps = {
@@ -24,8 +26,6 @@ type TimeGridViewProps = {
   todayKey: string;
   // 終日予定の欄に表示する予定（時間指定の予定は含めなくてよい）
   events?: CalendarEvent[];
-  // 各日の列に重ねる内容（予定など）。列は position: relative
-  renderDay?: (dayKey: string) => React.ReactNode;
 };
 
 const GUTTER = 'w-12 shrink-0';
@@ -42,16 +42,19 @@ function dayColumns(
   return view === 'week' ? week : week.filter((d) => d.key === dateKey);
 }
 
-// 週・日表示の時間グリッド（0〜24時）。予定の描画は renderDay で差し込む
+// 週・日表示の時間グリッド（0〜24時）。終日予定は上部の欄、時間指定の予定は各日の列に描画する
 export function TimeGridView({
   view,
   dateKey,
   todayKey,
   events = [],
-  renderDay,
 }: TimeGridViewProps) {
   const days = dayColumns(view, dateKey, todayKey);
   const todayColumn = days.findIndex((d) => d.isToday);
+  const blocks = layoutDayColumns(
+    events,
+    days.map((d) => d.key),
+  );
 
   return (
     <section aria-label={view === 'week' ? '週表示' : '日表示'}>
@@ -128,7 +131,7 @@ export function TimeGridView({
                   backgroundSize: `100% ${HOUR_HEIGHT_PX}px`,
                 }}
               >
-                {renderDay?.(d.key)}
+                <TimedEvents blocks={blocks[d.key]} />
                 {col === todayColumn && <CurrentTimeLine />}
               </div>
             ))}
