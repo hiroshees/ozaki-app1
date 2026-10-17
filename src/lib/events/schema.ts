@@ -16,8 +16,13 @@ export const eventInputSchema = z
         TITLE_MAX_LENGTH,
         `タイトルは${TITLE_MAX_LENGTH}文字以内にしてください`,
       ),
-    startsAt: z.coerce.date({ invalid_type_error: '開始日時が不正です' }),
-    endsAt: z.coerce.date({ invalid_type_error: '終了日時が不正です' }),
+    // 不正な日時（Invalid Date）も同じメッセージにする
+    startsAt: z.coerce.date({
+      errorMap: () => ({ message: '開始日時が不正です' }),
+    }),
+    endsAt: z.coerce.date({
+      errorMap: () => ({ message: '終了日時が不正です' }),
+    }),
     allDay: z.boolean().default(false),
     color: z.enum(EVENT_COLORS).default(DEFAULT_EVENT_COLOR),
     memo: z

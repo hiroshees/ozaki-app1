@@ -21,14 +21,16 @@ export default async function Home({ searchParams }: HomeProps) {
         todayKey={state.todayKey}
         title={state.title}
       />
-      <div className="md:flex">
-        <CalendarSidebar
-          view={state.view}
-          dateKey={state.dateKey}
-          todayKey={state.todayKey}
-        />
-        <main className="min-w-0 flex-1">
-          <EventDialogProvider events={events}>
+      {/* サイドバーの「作成」と予定のクリックが同じダイアログを開けるよう、両方を囲む */}
+      <EventDialogProvider events={events}>
+        <div className="md:flex">
+          <CalendarSidebar
+            view={state.view}
+            dateKey={state.dateKey}
+            todayKey={state.todayKey}
+            rangeContainsToday={state.containsToday}
+          />
+          <main className="min-w-0 flex-1">
             {state.view === 'month' ? (
               <MonthView
                 events={events}
@@ -43,9 +45,9 @@ export default async function Home({ searchParams }: HomeProps) {
                 todayKey={state.todayKey}
               />
             )}
-          </EventDialogProvider>
-        </main>
-      </div>
+          </main>
+        </div>
+      </EventDialogProvider>
     </>
   );
 }

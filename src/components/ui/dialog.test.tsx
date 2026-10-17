@@ -35,6 +35,8 @@ describe('Dialog', () => {
       </Dialog>,
     );
     expect(dialog.hasAttribute('open')).toBe(false);
+    // 親が閉じた場合は、親に onClose で知らせない（状態を二重に書き換えない）
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('背景（ダイアログ自身）のクリックで閉じ、内容のクリックでは閉じない', async () => {

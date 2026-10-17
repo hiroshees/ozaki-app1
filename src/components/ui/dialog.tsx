@@ -15,6 +15,9 @@ type DialogProps = {
 export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(null);
+  // open が false になって閉じた場合は、close イベントで onClose を呼ばない
+  // （別のダイアログへ切り替えたとき、新しい側の状態まで閉じてしまうのを防ぐ）
+  const closedByProp = useRef(false);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -26,10 +29,19 @@ export function Dialog({ open, onClose, labelledBy, children }: DialogProps) {
           : null;
       dialog.showModal();
     }
-    if (!open && dialog.open) dialog.close();
+    if (!open && dialog.open) {
+      closedByProp.current = true;
+      dialog.close();
+      opener.current?.focus();
+      opener.current = null;
+    }
   }, [open]);
 
   const handleClose = () => {
+    if (closedByProp.current) {
+      closedByProp.current = false;
+      return;
+    }
     opener.current?.focus();
     opener.current = null;
     onClose();

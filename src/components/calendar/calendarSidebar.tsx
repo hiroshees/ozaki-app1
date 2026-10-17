@@ -4,16 +4,26 @@ import { useState } from 'react';
 import { FaBars, FaPlus } from 'react-icons/fa6';
 import type { View } from '@/lib/calendar/grid';
 import { MiniCalendar } from '@/components/calendar/miniCalendar';
+import { useEventDialog } from '@/components/calendar/eventDialogs';
+import { buildCreateDefaults } from '@/lib/events/form';
 
-type CalendarSidebarProps = { view: View; dateKey: string; todayKey: string };
+type CalendarSidebarProps = {
+  view: View;
+  dateKey: string;
+  todayKey: string;
+  // 表示範囲に今日を含むか（作成フォームの初期値に使う）
+  rangeContainsToday: boolean;
+};
 
 // PC 幅では常に表示し、スマートフォン幅では開閉できる
 export function CalendarSidebar({
   view,
   dateKey,
   todayKey,
+  rangeContainsToday,
 }: CalendarSidebarProps) {
   const [open, setOpen] = useState(false);
+  const { openCreate } = useEventDialog();
 
   return (
     <aside className="border-b border-gray-200 md:w-64 md:shrink-0 md:border-b-0 md:border-r">
@@ -31,12 +41,20 @@ export function CalendarSidebar({
         id="calendar-sidebar-panel"
         className={`${open ? 'block' : 'hidden'} space-y-4 p-4 md:block`}
       >
-        {/* 作成ダイアログは phase-6。それまでは押せない状態にしておく */}
         <button
           type="button"
-          disabled
-          title="予定の作成は準備中です"
-          className="flex h-11 items-center gap-2 rounded-full border border-gray-300 px-5 text-sm font-medium shadow-sm disabled:cursor-not-allowed disabled:text-gray-400"
+          // 初期値は押した時点の現在時刻で決める（描画時に現在時刻を使わない）
+          onClick={() =>
+            openCreate(
+              buildCreateDefaults({
+                dateKey,
+                todayKey,
+                rangeContainsToday,
+                now: new Date(),
+              }),
+            )
+          }
+          className="flex h-11 items-center gap-2 rounded-full border border-gray-300 px-5 text-sm font-medium shadow-sm outline-none hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-400"
         >
           <FaPlus aria-hidden="true" />
           作成
