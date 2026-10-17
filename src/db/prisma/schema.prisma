@@ -34,7 +34,8 @@ generator zod {
 }
 
 model Event {
-  id String @id @default(uuid()) @db.Uuid
+  // supabase-js 経由の INSERT でも採番されるよう DB 側で生成する
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   /// @zod.string.min(1, { message: "タイトルは必須です" }).max(100, { message: "100文字以内です" })
   title String
   startsAt DateTime @map("starts_at") @db.Timestamptz(3)
@@ -46,7 +47,7 @@ model Event {
   /// @zod.string.max(1000, { message: "1000文字以内です" })
   memo String @default("")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   // 表示範囲との重なり検索（starts_at < 範囲の終わり AND ends_at > 範囲の始まり）用
   @@index([startsAt, endsAt])
