@@ -5,10 +5,15 @@ import userEvent from '@testing-library/user-event';
 import type { CalendarEvent } from '@/lib/events/types';
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
-vi.mock('@/lib/events/actions', () => ({ deleteEvent: vi.fn() }));
+vi.mock('@/lib/events/actions', () => ({
+  deleteEvent: vi.fn(),
+  createEvent: vi.fn(),
+  updateEvent: vi.fn(),
+}));
 
 import { EventButton } from '@/components/calendar/eventButton';
 import { EventDialogProvider } from '@/components/calendar/eventDialogs';
+import { CalendarSidebar } from '@/components/calendar/calendarSidebar';
 
 const jst = (s: string) => new Date(`${s}+09:00`);
 const make = (id: string, title: string): CalendarEvent => ({
@@ -79,5 +84,68 @@ describe('EventDialogProvider / EventButton', () => {
     render(<EventButton eventId="x">単独</EventButton>);
     await user.click(screen.getByRole('button', { name: '単独' }));
     expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('詳細ダイアログの「編集」で、その予定の編集フォームが開く（詳細は閉じる）', async () => {
+    const user = userEvent.setup();
+    render(tree([a, b]));
+    await user.click(screen.getByRole('button', { name: '予定Bボタン' }));
+    await user.click(screen.getByRole('button', { name: '編集' }));
+    expect(screen.getByRole('dialog', { name: '予定を編集' })).toBeTruthy();
+    expect(
+      (screen.getByRole('textbox', { name: 'タイトル' }) as HTMLInputElement)
+        .value,
+    ).toBe('予定B');
+    expect(screen.queryByRole('dialog', { name: '予定B' })).toBeNull();
+  });
+
+  it('サイドバーの「作成」で、基準日の 9:00〜10:00 を初期値に作成フォームが開く', async () => {
+    const user = userEvent.setup();
+    render(
+      <EventDialogProvider events={[]}>
+        <CalendarSidebar
+          view="month"
+          dateKey="2026-11-20"
+          todayKey="2026-10-17"
+          rangeContainsToday={false}
+        />
+      </EventDialogProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: '作成' }));
+    expect(screen.getByRole('dialog', { name: '予定を作成' })).toBeTruthy();
+    expect((screen.getByLabelText('開始日') as HTMLInputElement).value).toBe(
+      '2026-11-20',
+    );
+    expect((screen.getByLabelText('開始時刻') as HTMLInputElement).value).toBe(
+      '09:00',
+    );
+    expect((screen.getByLabelText('終了時刻') as HTMLInputElement).value).toBe(
+      '10:00',
+    );
+  });
+
+  it('作成フォームは開くたびに作り直され、前回の入力を引き継がない', async () => {
+    const user = userEvent.setup();
+    render(
+      <EventDialogProvider events={[]}>
+        <CalendarSidebar
+          view="month"
+          dateKey="2026-11-20"
+          todayKey="2026-10-17"
+          rangeContainsToday={false}
+        />
+      </EventDialogProvider>,
+    );
+    await user.click(screen.getByRole('button', { name: '作成' }));
+    await user.type(
+      screen.getByRole('textbox', { name: 'タイトル' }),
+      '途中まで',
+    );
+    await user.click(screen.getByRole('button', { name: 'キャンセル' }));
+    await user.click(screen.getByRole('button', { name: '作成' }));
+    expect(
+      (screen.getByRole('textbox', { name: 'タイトル' }) as HTMLInputElement)
+        .value,
+    ).toBe('');
   });
 });

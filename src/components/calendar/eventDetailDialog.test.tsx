@@ -31,9 +31,13 @@ beforeEach(() => {
   deleteEvent.mockReset();
 });
 
-const open = (e: CalendarEvent | null = event, onClose = vi.fn()) => {
-  render(<EventDetailDialog event={e} onClose={onClose} />);
-  return { onClose, user: userEvent.setup() };
+const open = (
+  e: CalendarEvent | null = event,
+  onClose = vi.fn(),
+  onEdit = vi.fn(),
+) => {
+  render(<EventDetailDialog event={e} onClose={onClose} onEdit={onEdit} />);
+  return { onClose, onEdit, user: userEvent.setup() };
 };
 
 describe('EventDetailDialog の表示', () => {
@@ -76,6 +80,14 @@ describe('EventDetailDialog の表示', () => {
       screen.getByRole('button', { name: 'ダイアログを閉じる' }),
     );
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('EventDetailDialog の編集', () => {
+  it('「編集」を押すと、その予定の ID で onEdit が呼ばれる', async () => {
+    const { user, onEdit } = open();
+    await user.click(screen.getByRole('button', { name: '編集' }));
+    expect(onEdit).toHaveBeenCalledWith(event.id);
   });
 });
 

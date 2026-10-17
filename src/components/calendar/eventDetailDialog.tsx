@@ -17,13 +17,26 @@ type EventDetailDialogProps = {
   // null のときは閉じている
   event: CalendarEvent | null;
   onClose: () => void;
+  // 「編集」ボタンで呼ばれる。編集フォームを開く
+  onEdit: (eventId: string) => void;
 };
 
-export function EventDetailDialog({ event, onClose }: EventDetailDialogProps) {
+export function EventDetailDialog({
+  event,
+  onClose,
+  onEdit,
+}: EventDetailDialogProps) {
   return (
     <Dialog open={event !== null} onClose={onClose} labelledBy={TITLE_ID}>
       {/* 開くたびに状態（削除の確認など）を作り直す */}
-      {event && <EventDetail key={event.id} event={event} onClose={onClose} />}
+      {event && (
+        <EventDetail
+          key={event.id}
+          event={event}
+          onClose={onClose}
+          onEdit={onEdit}
+        />
+      )}
     </Dialog>
   );
 }
@@ -31,9 +44,11 @@ export function EventDetailDialog({ event, onClose }: EventDetailDialogProps) {
 function EventDetail({
   event,
   onClose,
+  onEdit,
 }: {
   event: CalendarEvent;
   onClose: () => void;
+  onEdit: (eventId: string) => void;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -131,6 +146,13 @@ function EventDetail({
         </div>
       ) : (
         <div className="mt-5 flex justify-end gap-2 border-t border-gray-200 pt-4">
+          <button
+            type="button"
+            onClick={() => onEdit(event.id)}
+            className="h-9 rounded-md border border-gray-300 px-4 text-sm outline-none hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-400"
+          >
+            編集
+          </button>
           <button
             type="button"
             onClick={() => setConfirming(true)}

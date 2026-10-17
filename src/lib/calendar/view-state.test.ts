@@ -45,4 +45,22 @@ describe('resolveViewState', () => {
     expect(s.range.start.constructor).toBe(Date);
     expect(s.range.end.constructor).toBe(Date);
   });
+
+  it('表示範囲に今日を含むかどうか', () => {
+    expect(
+      resolveViewState({ view: 'week', date: '2026-10-17' }, now).containsToday,
+    ).toBe(true);
+    // 今日(10/17)を含む月の別の日を基準にしても、月表示は今日を含む
+    expect(
+      resolveViewState({ view: 'month', date: '2026-10-01' }, now)
+        .containsToday,
+    ).toBe(true);
+    expect(
+      resolveViewState({ view: 'day', date: '2026-10-18' }, now).containsToday,
+    ).toBe(false);
+    expect(
+      resolveViewState({ view: 'month', date: '2026-12-01' }, now)
+        .containsToday,
+    ).toBe(false);
+  });
 });
