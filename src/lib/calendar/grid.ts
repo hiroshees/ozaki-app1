@@ -116,7 +116,7 @@ const isView = (v: string | undefined): v is View =>
   VIEWS.some((view) => view === v);
 
 // yyyy-MM-dd の厳密な形式のみ受け付け、存在しない日付（2026-02-30 など）は null
-function parseDateKey(value: string | undefined): TZDate | null {
+export function parseDateKey(value: string | undefined): TZDate | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const [y, m, d] = value.split('-').map(Number);
   const date = new TZDate(y, m - 1, d, TIME_ZONE);
