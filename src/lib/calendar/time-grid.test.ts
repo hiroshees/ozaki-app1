@@ -8,6 +8,7 @@ import {
   minutesSinceMidnightJst,
   minutesToOffset,
   offsetToMinutes,
+  slotStartMinutes,
 } from '@/lib/calendar/time-grid';
 
 const jst = (s: string) => new Date(`${s}+09:00`);
@@ -105,5 +106,27 @@ describe('initialScrollMinutes', () => {
 
   it('今日を含まない表示では朝8時', () => {
     expect(initialScrollMinutes(jst('2026-10-17T15:00'), false)).toBe(8 * 60);
+  });
+});
+
+describe('slotStartMinutes（空き時間クリックの開始時刻）', () => {
+  it('クリック位置を15分単位に切り下げる', () => {
+    expect(slotStartMinutes(0)).toBe(0);
+    expect(slotStartMinutes(minutesToOffset(60))).toBe(60);
+    // 1:14 → 1:00、1:15 → 1:15
+    expect(slotStartMinutes(minutesToOffset(74))).toBe(60);
+    expect(slotStartMinutes(minutesToOffset(75))).toBe(75);
+    expect(slotStartMinutes(minutesToOffset(89.9))).toBe(75);
+  });
+
+  it('30分の予定が24:00を超えないよう、最後は23:30に収める', () => {
+    expect(slotStartMinutes(minutesToOffset(23 * 60 + 29))).toBe(23 * 60 + 15);
+    expect(slotStartMinutes(minutesToOffset(23 * 60 + 40))).toBe(23 * 60 + 30);
+    expect(slotStartMinutes(GRID_HEIGHT_PX)).toBe(23 * 60 + 30);
+    expect(slotStartMinutes(GRID_HEIGHT_PX + 100)).toBe(23 * 60 + 30);
+  });
+
+  it('範囲外（負の位置）は 0:00', () => {
+    expect(slotStartMinutes(-10)).toBe(0);
   });
 });

@@ -17,6 +17,7 @@ import { CurrentTimeLine } from '@/components/calendar/currentTimeLine';
 import { TimeGridScroller } from '@/components/calendar/timeGridScroller';
 import { AllDayArea } from '@/components/calendar/allDayArea';
 import { TimedEvents } from '@/components/calendar/timedEvents';
+import { TimeSlotLayer } from '@/components/calendar/timeSlotLayer';
 import { layoutDayColumns } from '@/lib/calendar/day-column';
 import type { CalendarEvent } from '@/lib/events/types';
 
@@ -131,6 +132,7 @@ export function TimeGridView({
                   backgroundSize: `100% ${HOUR_HEIGHT_PX}px`,
                 }}
               >
+                <TimeSlotLayer dayKey={d.key} />
                 <TimedEvents blocks={blocks[d.key]} />
                 {col === todayColumn && <CurrentTimeLine />}
               </div>
