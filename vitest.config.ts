@@ -5,12 +5,14 @@ import { defineConfig } from 'vitest/config';
 process.env.TZ = 'UTC';
 
 export default defineConfig({
+  // tsconfig の jsx は preserve（Next.js 用）のため、テストでは自動変換する
+  esbuild: { jsx: 'automatic' },
   resolve: {
     // tsconfig の paths（@/*）をテストでも解決する
     alias: { '@': path.resolve(__dirname, 'src') },
   },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 });
