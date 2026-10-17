@@ -9,7 +9,10 @@ import {
 import { buildMonthWeek, formatEventLabel } from '@/lib/calendar/month-week';
 import { buildViewHref } from '@/lib/calendar/url';
 import type { CalendarEvent } from '@/lib/events/types';
-import { EVENT_COLOR_CLASSES } from '@/components/calendar/eventColors';
+import {
+  bandShapeClasses,
+  EVENT_COLOR_CLASSES,
+} from '@/components/calendar/eventColors';
 
 // 1日に表示できる行数（「他 N 件」を含む）
 const MAX_ROWS = 4;
@@ -85,9 +88,7 @@ function WeekRow({
             title={band.event.title}
             className={`min-w-0 truncate px-1 text-[10px] leading-5 sm:text-xs ${
               EVENT_COLOR_CLASSES[band.event.color].band
-            } ${band.continuesBefore ? 'rounded-l-none' : 'ml-0.5 rounded-l'} ${
-              band.continuesAfter ? 'rounded-r-none' : 'mr-0.5 rounded-r'
-            }`}
+            } ${bandShapeClasses(band.continuesBefore, band.continuesAfter)}`}
             style={{
               gridColumn: `${band.startCol + 1} / ${band.endCol + 2}`,
               gridRow: band.row + 2,

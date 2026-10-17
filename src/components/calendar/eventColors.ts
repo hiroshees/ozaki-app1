@@ -13,3 +13,14 @@ export const EVENT_COLOR_CLASSES: Record<
   purple: { band: 'bg-purple-600 text-white', dot: 'bg-purple-600' },
   gray: { band: 'bg-gray-600 text-white', dot: 'bg-gray-600' },
 };
+
+// 帯の端の形。前後へ続く側は丸めず、続きが分かるようにする
+export function bandShapeClasses(
+  continuesBefore: boolean,
+  continuesAfter: boolean,
+): string {
+  return [
+    continuesBefore ? 'rounded-l-none' : 'ml-0.5 rounded-l',
+    continuesAfter ? 'rounded-r-none' : 'mr-0.5 rounded-r',
+  ].join(' ');
+}

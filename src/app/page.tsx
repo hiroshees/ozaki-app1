@@ -35,6 +35,7 @@ export default async function Home({ searchParams }: HomeProps) {
             />
           ) : (
             <TimeGridView
+              events={events}
               view={state.view}
               dateKey={state.dateKey}
               todayKey={state.todayKey}
