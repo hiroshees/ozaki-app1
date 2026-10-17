@@ -13,12 +13,9 @@ import {
   minutesToOffset,
 } from '@/lib/calendar/time-grid';
 import { buildViewHref } from '@/lib/calendar/url';
-import { CurrentTimeLine } from '@/components/calendar/currentTimeLine';
 import { TimeGridScroller } from '@/components/calendar/timeGridScroller';
 import { AllDayArea } from '@/components/calendar/allDayArea';
-import { TimedEvents } from '@/components/calendar/timedEvents';
-import { TimeSlotLayer } from '@/components/calendar/timeSlotLayer';
-import { layoutDayColumns } from '@/lib/calendar/day-column';
+import { TimeGridColumns } from '@/components/calendar/timeGridColumns';
 import type { CalendarEvent } from '@/lib/events/types';
 
 type TimeGridViewProps = {
@@ -52,10 +49,6 @@ export function TimeGridView({
 }: TimeGridViewProps) {
   const days = dayColumns(view, dateKey, todayKey);
   const todayColumn = days.findIndex((d) => d.isToday);
-  const blocks = layoutDayColumns(
-    events,
-    days.map((d) => d.key),
-  );
 
   return (
     <section aria-label={view === 'week' ? '週表示' : '日表示'}>
@@ -114,30 +107,10 @@ export function TimeGridView({
               </span>
             ))}
           </div>
-          <div
-            className="grid min-w-0 flex-1"
-            style={{
-              gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))`,
-            }}
-          >
-            {days.map((d, col) => (
-              <div
-                key={d.key}
-                data-day={d.key}
-                className="relative border-l border-gray-200"
-                // 1時間ごとの横線
-                style={{
-                  backgroundImage:
-                    'linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)',
-                  backgroundSize: `100% ${HOUR_HEIGHT_PX}px`,
-                }}
-              >
-                <TimeSlotLayer dayKey={d.key} />
-                <TimedEvents blocks={blocks[d.key]} />
-                {col === todayColumn && <CurrentTimeLine />}
-              </div>
-            ))}
-          </div>
+          <TimeGridColumns
+            days={days.map((d) => ({ key: d.key, isToday: d.isToday }))}
+            events={events}
+          />
         </div>
       </TimeGridScroller>
     </section>

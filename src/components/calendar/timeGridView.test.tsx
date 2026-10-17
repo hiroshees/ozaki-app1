@@ -1,5 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
+// 時間グリッドの列は Client Component で、useRouter と Server Action を使う
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock('@/lib/events/actions', () => ({
+  createEvent: vi.fn(),
+  updateEvent: vi.fn(),
+  deleteEvent: vi.fn(),
+}));
+
 import { TimeGridView } from '@/components/calendar/timeGridView';
 import type { CalendarEvent, EventColor } from '@/lib/events/types';
 
