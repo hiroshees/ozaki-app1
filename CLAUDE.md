@@ -4,25 +4,28 @@ Next.js（App Router）+ TypeScript + Supabase + Prisma で作る、Googleカレ
 仕様は `docs/SPEC.md`、実装計画と進捗は `docs/PLAN.md`。作業前に両方を読むこと。
 
 ## コマンド
+- パッケージマネージャー: `yarn`（このプロジェクトのみ。グローバルの pnpm 方針より優先）
 - 開発サーバー: `yarn run dev`
-- テスト: `yarn run test`（Vitest）（未決）
-- 型チェック: `yarn tsx --noEmit`　（未決）
+- テスト: `yarn run test`（Vitest。導入は専用 Issue）
+- 型チェック: `yarn tsc --noEmit`
 - lint: `yarn run lint`
 
 ## アーキテクチャの決まりごと
-- フォルダ構造は既存の構造を解釈して、それに従うこと
-- 
+- 既存の `src/` 構造（actions, components, config, db, hooks, lib, types, utils）に従う
+- テンプレ由来の認証コード（`src/utils/supabase/*` の ssr クライアント、`middleware.ts`、signin/signup 画面、`User`/`Sample` モデル）は撤去対象。新規コードから参照しない（撤去は Issue #1 で実施）
 
 ### データアクセス
-- Supabase の接続設定は既にある。新しく作り直さず、既存のクライアント設定を確認して使う
-- **書き込み（作成・更新・削除）はすべて Server Actions 経由**。サーバー専用のシークレットキーを使う
-- ブラウザからは読み取り（SELECT）と 書き込み（INSERT、UPDATE、DELETE）を利用する。管理画面は利用しない。
+- 環境変数は `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`（既存）と、サーバー専用の `SUPABASE_SECRET_KEY`（新規追加。`.env.sample` にも追記）
+- **書き込み（作成・更新・削除）はすべて Server Actions 経由**で、supabase-js + `SUPABASE_SECRET_KEY` を使う。サーバー専用クライアントは `src/utils/supabase/admin.ts` に置く（`server-only` で保護）
+- ブラウザからは読み取り（SELECT）と Realtime 購読のみ。書き込みはしない（anon には INSERT/UPDATE/DELETE を許可しない）。Supabase 管理画面は使わない
+- Prisma はスキーマ定義とマイグレーション専用。実行時のデータアクセスには使わない
 - シークレットキー（`SUPABASE_SECRET_KEY`）を `NEXT_PUBLIC_` 付きの変数にしない。クライアントコンポーネントから import しない
 - Server Actions の入力は必ず zod で検証する
 - Prismaのスキーマファイルは以下に配置 `src/db/prisma/schema.prisma`
 - 予定の取得は、表示範囲と重なるものだけを取る: `starts_at < 範囲の終わり AND ends_at > 範囲の始まり`
 - DB の変更はマイグレーションファイルとして追加する。ダッシュボードで直接変更しない
-- ログインがないので `@supabase/ssr` は使わない
+- ログインがないので `@supabase/ssr` は新規コードで使わない（既存利用箇所は撤去 Issue で削除）
+- `vercel-build` の `prisma migrate deploy` は本番に反映される。マイグレーション追加時はその旨を PR に明記する
 
 ### 日付・タイムゾーン
 - DB の日時は `timestamptz`（UTC で保存）
@@ -50,4 +53,4 @@ Next.js（App Router）+ TypeScript + Supabase + Prisma で作る、Googleカレ
 - PR の前に lint・型チェック・テストを通す。PR 本文には `Closes #<番号>`、変更内容、ブラウザでの確認手順を書く
 - PR のマージは前に人間にやっていいかを確認する
 - Issue を作るときは `.github/ISSUE_TEMPLATE/task.md` の形式に従い、`phase-N` ラベルを付ける。作ったら `docs/PLAN.md` の `#?` を番号に置き換える
-- 本番 DB に影響する操作（`supabase db push` など）は実行せず、コマンドを提示するだけにする
+- 本番 DB に影響する操作（`prisma migrate deploy`、`supabase db push` など）は実行せず、コマンドを提示するだけにする
