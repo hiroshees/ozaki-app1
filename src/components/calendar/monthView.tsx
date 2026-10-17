@@ -13,6 +13,7 @@ import {
   bandShapeClasses,
   EVENT_COLOR_CLASSES,
 } from '@/components/calendar/eventColors';
+import { EventButton } from '@/components/calendar/eventButton';
 
 // 1日に表示できる行数（「他 N 件」を含む）
 const MAX_ROWS = 4;
@@ -83,10 +84,11 @@ function WeekRow({
         ))}
 
         {monthWeek.bands.map((band) => (
-          <div
+          <EventButton
             key={`${band.event.id}-${band.startCol}`}
+            eventId={band.event.id}
             title={band.event.title}
-            className={`min-w-0 truncate px-1 text-[10px] leading-5 sm:text-xs ${
+            className={`min-w-0 truncate px-1 text-left text-[10px] leading-5 outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:text-xs ${
               EVENT_COLOR_CLASSES[band.event.color].band
             } ${bandShapeClasses(band.continuesBefore, band.continuesAfter)}`}
             style={{
@@ -95,7 +97,7 @@ function WeekRow({
             }}
           >
             {formatEventLabel(band.event, false)}
-          </div>
+          </EventButton>
         ))}
 
         {monthWeek.days.map((day, col) => (
@@ -126,10 +128,11 @@ function DayEvents({
   return (
     <>
       {day.timed.map((segment, i) => (
-        <div
+        <EventButton
           key={segment.event.id}
+          eventId={segment.event.id}
           title={formatEventLabel(segment.event, true)}
-          className="mx-0.5 flex min-w-0 items-center gap-1 text-[10px] leading-5 sm:text-xs"
+          className="mx-0.5 flex min-w-0 items-center gap-1 rounded text-left text-[10px] leading-5 outline-none hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-400 sm:text-xs"
           style={{ gridColumn: col + 1, gridRow: firstRow + i }}
         >
           <span
@@ -139,7 +142,7 @@ function DayEvents({
           <span className="truncate">
             {formatEventLabel(segment.event, true)}
           </span>
-        </div>
+        </EventButton>
       ))}
       {day.hiddenCount > 0 && (
         <Link

@@ -1,5 +1,6 @@
 import { CalendarHeader } from '@/components/calendar/calendarHeader';
 import { CalendarSidebar } from '@/components/calendar/calendarSidebar';
+import { EventDialogProvider } from '@/components/calendar/eventDialogs';
 import { MonthView } from '@/components/calendar/monthView';
 import { TimeGridView } from '@/components/calendar/timeGridView';
 import { fetchEventsInRange } from '@/lib/events/fetch';
@@ -27,20 +28,22 @@ export default async function Home({ searchParams }: HomeProps) {
           todayKey={state.todayKey}
         />
         <main className="min-w-0 flex-1">
-          {state.view === 'month' ? (
-            <MonthView
-              events={events}
-              dateKey={state.dateKey}
-              todayKey={state.todayKey}
-            />
-          ) : (
-            <TimeGridView
-              events={events}
-              view={state.view}
-              dateKey={state.dateKey}
-              todayKey={state.todayKey}
-            />
-          )}
+          <EventDialogProvider events={events}>
+            {state.view === 'month' ? (
+              <MonthView
+                events={events}
+                dateKey={state.dateKey}
+                todayKey={state.todayKey}
+              />
+            ) : (
+              <TimeGridView
+                events={events}
+                view={state.view}
+                dateKey={state.dateKey}
+                todayKey={state.todayKey}
+              />
+            )}
+          </EventDialogProvider>
         </main>
       </div>
     </>

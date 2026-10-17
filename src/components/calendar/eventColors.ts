@@ -58,3 +58,13 @@ export function blockShapeClasses(isStart: boolean, isEnd: boolean): string {
     isEnd ? 'rounded-b' : 'rounded-b-none',
   ].join(' ');
 }
+
+// 色の名前（詳細ダイアログなど、色を文字で伝える場面で使う）
+export const EVENT_COLOR_LABELS: Record<EventColor, string> = {
+  blue: '青',
+  red: '赤',
+  green: '緑',
+  yellow: '黄',
+  purple: '紫',
+  gray: 'グレー',
+};

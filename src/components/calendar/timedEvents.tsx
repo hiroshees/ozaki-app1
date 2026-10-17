@@ -6,6 +6,7 @@ import {
   blockShapeClasses,
   EVENT_COLOR_CLASSES,
 } from '@/components/calendar/eventColors';
+import { EventButton } from '@/components/calendar/eventButton';
 
 const formatTime = (date: Date) => format(toJstDate(date), 'H:mm');
 
@@ -32,9 +33,10 @@ export function TimedEvents({
               width: `${block.widthPercent}%`,
             }}
           >
-            <div
+            <EventButton
+              eventId={event.id}
               title={`${range} ${event.title}`}
-              className={`h-full overflow-hidden border-l-4 px-1 text-[10px] leading-4 sm:text-xs ${
+              className={`block h-full w-full overflow-hidden border-l-4 px-1 text-left text-[10px] leading-4 outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:text-xs ${
                 EVENT_COLOR_CLASSES[event.color].block
               } ${blockShapeClasses(isStart, isEnd)}`}
             >
@@ -42,7 +44,7 @@ export function TimedEvents({
               {showsTimeRange(block.heightMinutes) && (
                 <div className="truncate">{range}</div>
               )}
-            </div>
+            </EventButton>
           </div>
         );
       })}
