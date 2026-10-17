@@ -9,10 +9,16 @@ export default defineConfig({
   esbuild: { jsx: 'automatic' },
   resolve: {
     // tsconfig の paths（@/*）をテストでも解決する
-    alias: { '@': path.resolve(__dirname, 'src') },
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      // Vitest には react-server 条件が無く、import しただけで例外になるため差し替える
+      'server-only': path.resolve(__dirname, 'src/test/server-only.ts'),
+    },
   },
   test: {
     environment: 'node',
+    // jsdom が必要なテストは、ファイル先頭の `@vitest-environment jsdom` で切り替える
+    setupFiles: ['src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
   },
 });

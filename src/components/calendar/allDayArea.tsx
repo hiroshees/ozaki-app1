@@ -4,6 +4,7 @@ import {
   bandShapeClasses,
   EVENT_COLOR_CLASSES,
 } from '@/components/calendar/eventColors';
+import { EventButton } from '@/components/calendar/eventButton';
 
 const ROW_HEIGHT = '1.25rem';
 
@@ -55,10 +56,11 @@ export function AllDayArea({
           }}
         >
           {area.bands.map((band) => (
-            <div
+            <EventButton
               key={`${band.event.id}-${band.startCol}`}
+              eventId={band.event.id}
               title={band.event.title}
-              className={`min-w-0 truncate px-1 text-[10px] leading-5 sm:text-xs ${
+              className={`min-w-0 truncate px-1 text-left text-[10px] leading-5 outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:text-xs ${
                 EVENT_COLOR_CLASSES[band.event.color].band
               } ${bandShapeClasses(band.continuesBefore, band.continuesAfter)}`}
               style={{
@@ -67,7 +69,7 @@ export function AllDayArea({
               }}
             >
               {band.event.title}
-            </div>
+            </EventButton>
           ))}
           {area.days.map(
             (day, col) =>
