@@ -55,18 +55,6 @@ describe('TimeGridView', () => {
     expect(render('week', '2026-10-17')).not.toContain('data-current-time');
     expect(render('day', '2026-10-17')).not.toContain('data-current-time');
   });
-
-  it('renderDay の内容が各日の列の中に入る', () => {
-    const html = renderToStaticMarkup(
-      <TimeGridView
-        view="day"
-        dateKey="2026-10-14"
-        todayKey="2026-10-17"
-        renderDay={(key) => <i data-slot={key} />}
-      />,
-    );
-    expect(html).toContain('data-slot="2026-10-14"');
-  });
 });
 
 const jst = (s: string) => new Date(`${s}+09:00`);
@@ -152,7 +140,8 @@ describe('TimeGridView の終日予定の欄', () => {
       make('夜', '2026-10-13T23:00', '2026-10-14T01:00'),
     ]);
     expect(html).not.toContain('終日');
-    expect(html).not.toContain('>夜<');
+    // 終日の欄は無く、予定は時間グリッド側の列にだけ出る
+    expect(html.slice(0, html.indexOf('data-day="'))).not.toContain('>夜<');
   });
 
   it('あふれると最終行が「他 N 件」になる', () => {
@@ -177,5 +166,118 @@ describe('TimeGridView の終日予定の欄', () => {
       allDayEvent('別日', '2026-10-20', '2026-10-21'),
     ]);
     expect(html).not.toContain('別日');
+  });
+});
+
+const timed = (title: string, start: string, end: string, color?: EventColor) =>
+  make(title, start, end, { color });
+
+// 時間グリッドの列（data-day="..."）ごとの HTML を取り出す
+const columnHtml = (html: string, dayKey: string) => {
+  const start = html.indexOf(`data-day="${dayKey}"`);
+  expect(start).toBeGreaterThan(-1);
+  const next = html.indexOf('data-day="', start + 1);
+  return html.slice(start, next === -1 ? undefined : next);
+};
+
+describe('TimeGridView の時間指定の予定', () => {
+  it('予定が、その日の列の中に、時刻に対応した位置で描画される', () => {
+    const html = renderWith('week', '2026-10-14', [
+      timed('会議', '2026-10-14T09:00', '2026-10-14T10:30'),
+    ]);
+    const col = columnHtml(html, '2026-10-14');
+    expect(col).toContain('>会議<');
+    expect(col).toContain('top:432px');
+    expect(col).toContain('height:72px');
+    expect(columnHtml(html, '2026-10-13')).not.toContain('会議');
+    // 終日の欄には出ない
+    expect(html).not.toContain('終日');
+  });
+
+  it('時刻は JST で「開始〜終了」と表示される', () => {
+    const html = renderWith('day', '2026-10-14', [
+      timed('会議', '2026-10-14T09:00', '2026-10-14T10:30'),
+    ]);
+    expect(html).toContain('>9:00〜10:30<');
+  });
+
+  it('重なる予定は横に並び、互いに隠れない', () => {
+    const html = renderWith('day', '2026-10-14', [
+      timed('A', '2026-10-14T09:00', '2026-10-14T11:00'),
+      timed('B', '2026-10-14T10:00', '2026-10-14T12:00'),
+    ]);
+    expect(html).toContain('left:0%;width:50%');
+    expect(html).toContain('left:50%;width:50%');
+  });
+
+  it('日をまたぐ予定（23:00〜翌1:00）は両日の列に、その日の分だけ出る', () => {
+    const html = renderWith('week', '2026-10-14', [
+      timed('夜', '2026-10-14T23:00', '2026-10-15T01:00'),
+    ]);
+    const d14 = columnHtml(html, '2026-10-14');
+    const d15 = columnHtml(html, '2026-10-15');
+    expect(d14).toContain('>夜<');
+    expect(d14).toContain('top:1104px');
+    expect(d15).toContain('>夜<');
+    expect(d15).toMatch(/top:0[;"]/);
+    // 切り口の側は角を丸めない
+    expect(d14).toContain('rounded-b-none');
+    expect(d15).toContain('rounded-t-none');
+  });
+
+  it('15分の予定でも判別できる高さで、時刻は出さずタイトルのみ', () => {
+    const html = renderWith('day', '2026-10-14', [
+      timed('短い', '2026-10-14T09:00', '2026-10-14T09:15'),
+    ]);
+    expect(html).toContain('height:24px');
+    expect(html).toContain('>短い<');
+    expect(html).not.toContain('9:00〜9:15<');
+  });
+
+  it('6色すべてが区別できるクラスで描画される', () => {
+    const colors: EventColor[] = [
+      'blue',
+      'red',
+      'green',
+      'yellow',
+      'purple',
+      'gray',
+    ];
+    const html = renderWith(
+      'day',
+      '2026-10-14',
+      colors.map((c, i) =>
+        timed(
+          `色${c}`,
+          `2026-10-14T0${i + 1}:00`,
+          `2026-10-14T0${i + 1}:50`,
+          c,
+        ),
+      ),
+    );
+    for (const c of [
+      'bg-blue-100',
+      'bg-red-100',
+      'bg-green-100',
+      'bg-yellow-100',
+      'bg-purple-100',
+      'bg-gray-100',
+    ]) {
+      expect(html).toContain(c);
+    }
+  });
+
+  it('長いタイトルは省略表示のクラスが付く', () => {
+    const html = renderWith('day', '2026-10-14', [
+      timed('あ'.repeat(200), '2026-10-14T09:00', '2026-10-14T10:00'),
+    ]);
+    expect(html).toContain('truncate');
+  });
+
+  it('予定は現在時刻の線より背面（z-10 < z-20）', () => {
+    const html = renderWith('day', '2026-10-14', [
+      timed('会議', '2026-10-14T09:00', '2026-10-14T10:00'),
+    ]);
+    expect(html).toContain('z-10');
   });
 });
