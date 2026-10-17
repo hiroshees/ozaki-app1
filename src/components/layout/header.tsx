@@ -10,8 +10,6 @@ import { BiSolidMoviePlay } from "react-icons/bi";
 const links = [
   { title: "ホーム", href: "/" },
   { title: "紹介", href: "/about" },
-  { title: "サインアップ", href: "/signup" },
-  { title: "サインイン", href: "/signin" },
 ];
 
 export function Header() {
