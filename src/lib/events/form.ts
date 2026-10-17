@@ -1,6 +1,9 @@
 import { addDays, format, startOfDay } from 'date-fns';
 import { formatDateKey, parseDateKey, toJstDate } from '@/lib/calendar/grid';
-import { minutesSinceMidnightJst } from '@/lib/calendar/time-grid';
+import {
+  minutesSinceMidnightJst,
+  SLOT_DURATION_MINUTES,
+} from '@/lib/calendar/time-grid';
 import { eventInputSchema } from '@/lib/events/schema';
 import {
   DEFAULT_EVENT_COLOR,
@@ -199,6 +202,28 @@ export function buildCreateDefaults({
     ...base,
     startDate: todayKey,
     startTime: toTime(start),
+    endDate,
+    endTime: toTime(end % (24 * 60)),
+  };
+}
+
+// 空き時間クリックの初期値。クリックした日の startMinutes（0:00 からの分）から30分の予定
+// 終了が24:00になる場合は、翌日の 0:00 にする
+export function buildSlotDefaults(
+  dayKey: string,
+  startMinutes: number,
+): EventFormValues {
+  const end = startMinutes + SLOT_DURATION_MINUTES;
+  const day = parseDateKey(dayKey);
+  const endDate =
+    end >= 24 * 60 && day ? formatDateKey(addDays(day, 1)) : dayKey;
+  return {
+    title: '',
+    allDay: false,
+    color: DEFAULT_EVENT_COLOR,
+    memo: '',
+    startDate: dayKey,
+    startTime: toTime(startMinutes),
     endDate,
     endTime: toTime(end % (24 * 60)),
   };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildCreateDefaults,
+  buildSlotDefaults,
   eventToFormValues,
   formValuesToInput,
   serverErrorsToFormErrors,
@@ -319,5 +320,52 @@ describe('buildCreateDefaults', () => {
       now: new Date('2026-10-16T16:10:00Z'),
     });
     expect(v).toMatchObject({ startDate: today, startTime: '01:30' });
+  });
+});
+
+describe('buildSlotDefaults（空き時間クリックの初期値）', () => {
+  it('クリックした日の、開始時刻から30分の予定（終日はオフ）', () => {
+    expect(buildSlotDefaults('2026-10-20', 9 * 60 + 15)).toEqual({
+      title: '',
+      allDay: false,
+      startDate: '2026-10-20',
+      startTime: '09:15',
+      endDate: '2026-10-20',
+      endTime: '09:45',
+      color: 'blue',
+      memo: '',
+    });
+  });
+
+  it('0:00 から始まる予定', () => {
+    expect(buildSlotDefaults('2026-10-20', 0)).toMatchObject({
+      startTime: '00:00',
+      endTime: '00:30',
+    });
+  });
+
+  it('23:30 の予定は、終了が翌日の 0:00（24:00 を超えない）', () => {
+    expect(buildSlotDefaults('2026-10-31', 23 * 60 + 30)).toMatchObject({
+      startDate: '2026-10-31',
+      startTime: '23:30',
+      endDate: '2026-11-01',
+      endTime: '00:00',
+    });
+  });
+
+  it('年末の 23:30 は、終了が翌年 1/1 の 0:00', () => {
+    expect(buildSlotDefaults('2026-12-31', 23 * 60 + 30)).toMatchObject({
+      endDate: '2027-01-01',
+      endTime: '00:00',
+    });
+  });
+
+  it('そのまま保存できる値になる（検証を通り、JST で正しい）', () => {
+    const result = validateFormValues({
+      ...buildSlotDefaults('2026-10-20', 23 * 60 + 30),
+      title: '予定',
+    });
+    expect(result.ok && result.input.startsAt).toBe('2026-10-20T14:30:00.000Z');
+    expect(result.ok && result.input.endsAt).toBe('2026-10-20T15:00:00.000Z');
   });
 });

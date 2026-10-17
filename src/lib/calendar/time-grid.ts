@@ -6,6 +6,9 @@ export const HOUR_HEIGHT_PX = 48;
 export const GRID_HEIGHT_PX = HOUR_HEIGHT_PX * 24;
 
 const DEFAULT_SCROLL_HOUR = 8;
+// 空き時間クリックで作る予定の長さと、開始時刻の刻み
+export const SLOT_DURATION_MINUTES = 30;
+const SLOT_STEP_MINUTES = 15;
 
 // 0:00 からの分 → グリッド上端からの位置(px)
 export const minutesToOffset = (minutes: number) =>
@@ -47,4 +50,12 @@ export function initialScrollMinutes(
   if (!containsToday) return DEFAULT_SCROLL_HOUR * 60;
   const nowMinutes = differenceInMinutes(now, startOfDay(toJstDate(now)));
   return Math.max(0, Math.floor(nowMinutes / 60) * 60 - 60);
+}
+
+// 空き時間クリックの開始時刻（0:00 からの分）。クリック位置(px)を15分単位に切り下げ、
+// 30分の予定が24:00を超えないよう、最後は 23:30 に収める
+export function slotStartMinutes(offset: number): number {
+  const snapped =
+    Math.floor(offsetToMinutes(offset) / SLOT_STEP_MINUTES) * SLOT_STEP_MINUTES;
+  return Math.min(Math.max(snapped, 0), 24 * 60 - SLOT_DURATION_MINUTES);
 }
