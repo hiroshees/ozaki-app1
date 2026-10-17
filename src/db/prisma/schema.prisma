@@ -32,19 +32,3 @@ generator zod {
   coerceDate                       = true // default is true
   writeNullishInModelTypes         = false // default is false
 }
-
-model User {
-  id String @id @default(uuid())
-  email String  @unique
-  sample Sample[]
-}
-
-model Sample {
-  id Int @id @default(autoincrement())
-  /// @zod.string({ invalid_type_error: "文字を入力してください"}).min(1, { message: "必須です" }).max(10, { message: "10文字以内です" })
-  name String
-  user User @relation(fields: [userId], references: [id])
-  userId String
-  createdAt DateTime @default(now())
-  modifiedAt DateTime @updatedAt
-}
