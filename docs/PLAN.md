@@ -23,10 +23,10 @@
 
 ## フェーズ0: 準備 `phase-0`
 - #1 テンプレ由来の認証コードと User/Sample モデルを撤去する
-- #? Vitest・date-fns・@date-fns/tz・server-only・prettier を導入する（追加前に確認）
+- #3 Vitest・date-fns・@date-fns/tz・server-only・prettier を導入する（追加前に確認）
 
 ## フェーズ1: DB とデータアクセスの土台 `phase-1`
-- #? events テーブルのスキーマを定義する
+- events テーブルのスキーマを定義する（#1 の PR #2 で先行実施済み）
 - #? events テーブルのマイグレーションを追加する（適用は人間が行う）
 - #? 予定の型と zod スキーマ
 - #? 表示範囲の予定を取得する関数
@@ -69,3 +69,4 @@
 ## 変更履歴
 - 2026-10-17 GitHub Issue で管理する形に変更
 - 2026-10-17 フェーズ0（テンプレ撤去・パッケージ導入）を追加。書き込みは Supabase secret key に決定
+- 2026-10-17 パッケージ導入を #3 として起票。events スキーマは PR #2 で先行実施
