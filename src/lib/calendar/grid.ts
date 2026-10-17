@@ -26,7 +26,7 @@ export type GridDay = {
   isToday: boolean;
 };
 
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+export const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 const MONTH_GRID_DAYS = 42;
 
 // 任意の時刻を、JST の同じ瞬間を表す TZDate にする
